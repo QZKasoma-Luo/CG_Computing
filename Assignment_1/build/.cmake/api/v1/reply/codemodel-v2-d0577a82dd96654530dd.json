@@ -1,0 +1,60 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"jsonFile" : "directory-.-Debug-f5ebdc15457944623624.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.1"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "assignment1",
+					"targetIndexes" : 
+					[
+						0
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "assignment1::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-assignment1-Debug-7351db44ae2b4cf0d464.json",
+					"name" : "assignment1",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/Users/qingzeluo/Library/Mobile Documents/com~apple~CloudDocs/Uvic/Computer Science 3rd year/24 Summer/CSC 305/CG-Summer-2024/Assignment_1/build",
+		"source" : "/Users/qingzeluo/Library/Mobile Documents/com~apple~CloudDocs/Uvic/Computer Science 3rd year/24 Summer/CSC 305/CG-Summer-2024/Assignment_1"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 7
+	}
+}

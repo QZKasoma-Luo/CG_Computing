@@ -1,0 +1,8 @@
+[
+{
+  "directory": "/Users/qingzeluo/Library/Mobile Documents/com~apple~CloudDocs/Uvic/Computer Science 3rd year/24 Summer/CSC 305/CG-Summer-2024/Assignment_1/build",
+  "command": "/usr/bin/clang++ -DDATA_DIR=\"\\\"/Users/qingzeluo/Library/Mobile Documents/com~apple~CloudDocs/Uvic/Computer Science 3rd year/24 Summer/CSC 305/CG-Summer-2024/Assignment_1/data/\\\"\" -isystem \"/Users/qingzeluo/Library/Mobile Documents/com~apple~CloudDocs/Uvic/Computer Science 3rd year/24 Summer/CSC 305/CG-Summer-2024/Assignment_1/../ext/eigen\" -g -std=gnu++11 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX14.4.sdk -o CMakeFiles/assignment1.dir/src/main.cpp.o -c \"/Users/qingzeluo/Library/Mobile Documents/com~apple~CloudDocs/Uvic/Computer Science 3rd year/24 Summer/CSC 305/CG-Summer-2024/Assignment_1/src/main.cpp\"",
+  "file": "/Users/qingzeluo/Library/Mobile Documents/com~apple~CloudDocs/Uvic/Computer Science 3rd year/24 Summer/CSC 305/CG-Summer-2024/Assignment_1/src/main.cpp",
+  "output": "CMakeFiles/assignment1.dir/src/main.cpp.o"
+}
+]
