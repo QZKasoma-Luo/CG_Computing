@@ -173,16 +173,14 @@ int AABBTree::build_recursive(const MatrixXd &V, const MatrixXi &F, const Matrix
     // If there is only 1 triangle left, then we are at a leaf
     if (to - from == 1)
     {
-        // TODO create leaf node and retun correct left index
         int index = triangles[from];
         Node leaf_node;
         leaf_node.bbox = bbox_from_triangle(V.row(F(index, 0)), V.row(F(index, 1)), V.row(F(index, 2)));
         leaf_node.parent = parent;
-        leaf_node.right = -1;
         leaf_node.left = -1;
+        leaf_node.right = -1;
         leaf_node.triangle = index;
         nodes.push_back(leaf_node);
-
         return nodes.size() - 1;
     }
 
@@ -225,9 +223,9 @@ int AABBTree::build_recursive(const MatrixXd &V, const MatrixXi &F, const Matrix
     // TODO finally return the correct index
     int mid = (from + to) / 2;
     Node internal_node;
-    internal_node.parent = parent;
     internal_node.left = build_recursive(V, F, centroids, from, mid, nodes.size(), triangles);
     internal_node.right = build_recursive(V, F, centroids, mid, to, nodes.size(), triangles);
+    internal_node.parent = parent;
     internal_node.bbox = nodes[internal_node.left].bbox.merged(nodes[internal_node.right].bbox);
     internal_node.triangle = -1;
     nodes.push_back(internal_node);
@@ -356,6 +354,8 @@ bool find_nearest_object(const Vector3d &ray_origin, const Vector3d &ray_directi
 
     return flag;
 }
+
+// bonus 3
 
 ////////////////////////////////////////////////////////////////////////////////
 // Raytracer code
