@@ -7,7 +7,7 @@ set(CMAKE_DEPENDS_GENERATOR "Unix Makefiles")
 # The top level Makefile was generated from the following files:
 set(CMAKE_MAKEFILE_DEPENDS
   "CMakeCache.txt"
-  "/Users/qingzeluo/Library/Mobile Documents/com~apple~CloudDocs/Uvic/Computer Science 3rd year/24 Summer/CSC 305/A4-A5/CG-Summer-2024/Assignment_4/CMakeLists.txt"
+  "/Users/qingzeluo/Library/Mobile Documents/com~apple~CloudDocs/Uvic/Computer Science 3rd year/24 Summer/CSC 305/CG_Computing/Assignment_4/CMakeLists.txt"
   "CMakeFiles/3.29.3/CMakeCCompiler.cmake"
   "CMakeFiles/3.29.3/CMakeCXXCompiler.cmake"
   "CMakeFiles/3.29.3/CMakeSystem.cmake"

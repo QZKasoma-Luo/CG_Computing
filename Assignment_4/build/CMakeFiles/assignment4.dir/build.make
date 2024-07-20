@@ -53,10 +53,10 @@ RM = /opt/homebrew/Cellar/cmake/3.29.3/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = "/Users/qingzeluo/Library/Mobile Documents/com~apple~CloudDocs/Uvic/Computer Science 3rd year/24 Summer/CSC 305/A4-A5/CG-Summer-2024/Assignment_4"
+CMAKE_SOURCE_DIR = "/Users/qingzeluo/Library/Mobile Documents/com~apple~CloudDocs/Uvic/Computer Science 3rd year/24 Summer/CSC 305/CG_Computing/Assignment_4"
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = "/Users/qingzeluo/Library/Mobile Documents/com~apple~CloudDocs/Uvic/Computer Science 3rd year/24 Summer/CSC 305/A4-A5/CG-Summer-2024/Assignment_4/build"
+CMAKE_BINARY_DIR = "/Users/qingzeluo/Library/Mobile Documents/com~apple~CloudDocs/Uvic/Computer Science 3rd year/24 Summer/CSC 305/CG_Computing/Assignment_4/build"
 
 # Include any dependencies generated for this target.
 include CMakeFiles/assignment4.dir/depend.make
@@ -70,18 +70,18 @@ include CMakeFiles/assignment4.dir/progress.make
 include CMakeFiles/assignment4.dir/flags.make
 
 CMakeFiles/assignment4.dir/src/main.cpp.o: CMakeFiles/assignment4.dir/flags.make
-CMakeFiles/assignment4.dir/src/main.cpp.o: /Users/qingzeluo/Library/Mobile\ Documents/com~apple~CloudDocs/Uvic/Computer\ Science\ 3rd\ year/24\ Summer/CSC\ 305/A4-A5/CG-Summer-2024/Assignment_4/src/main.cpp
+CMakeFiles/assignment4.dir/src/main.cpp.o: /Users/qingzeluo/Library/Mobile\ Documents/com~apple~CloudDocs/Uvic/Computer\ Science\ 3rd\ year/24\ Summer/CSC\ 305/CG_Computing/Assignment_4/src/main.cpp
 CMakeFiles/assignment4.dir/src/main.cpp.o: CMakeFiles/assignment4.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="/Users/qingzeluo/Library/Mobile Documents/com~apple~CloudDocs/Uvic/Computer Science 3rd year/24 Summer/CSC 305/A4-A5/CG-Summer-2024/Assignment_4/build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/assignment4.dir/src/main.cpp.o"
-	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/assignment4.dir/src/main.cpp.o -MF CMakeFiles/assignment4.dir/src/main.cpp.o.d -o CMakeFiles/assignment4.dir/src/main.cpp.o -c "/Users/qingzeluo/Library/Mobile Documents/com~apple~CloudDocs/Uvic/Computer Science 3rd year/24 Summer/CSC 305/A4-A5/CG-Summer-2024/Assignment_4/src/main.cpp"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="/Users/qingzeluo/Library/Mobile Documents/com~apple~CloudDocs/Uvic/Computer Science 3rd year/24 Summer/CSC 305/CG_Computing/Assignment_4/build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/assignment4.dir/src/main.cpp.o"
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/assignment4.dir/src/main.cpp.o -MF CMakeFiles/assignment4.dir/src/main.cpp.o.d -o CMakeFiles/assignment4.dir/src/main.cpp.o -c "/Users/qingzeluo/Library/Mobile Documents/com~apple~CloudDocs/Uvic/Computer Science 3rd year/24 Summer/CSC 305/CG_Computing/Assignment_4/src/main.cpp"
 
 CMakeFiles/assignment4.dir/src/main.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/assignment4.dir/src/main.cpp.i"
-	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "/Users/qingzeluo/Library/Mobile Documents/com~apple~CloudDocs/Uvic/Computer Science 3rd year/24 Summer/CSC 305/A4-A5/CG-Summer-2024/Assignment_4/src/main.cpp" > CMakeFiles/assignment4.dir/src/main.cpp.i
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "/Users/qingzeluo/Library/Mobile Documents/com~apple~CloudDocs/Uvic/Computer Science 3rd year/24 Summer/CSC 305/CG_Computing/Assignment_4/src/main.cpp" > CMakeFiles/assignment4.dir/src/main.cpp.i
 
 CMakeFiles/assignment4.dir/src/main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/assignment4.dir/src/main.cpp.s"
-	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "/Users/qingzeluo/Library/Mobile Documents/com~apple~CloudDocs/Uvic/Computer Science 3rd year/24 Summer/CSC 305/A4-A5/CG-Summer-2024/Assignment_4/src/main.cpp" -o CMakeFiles/assignment4.dir/src/main.cpp.s
+	/Library/Developer/CommandLineTools/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "/Users/qingzeluo/Library/Mobile Documents/com~apple~CloudDocs/Uvic/Computer Science 3rd year/24 Summer/CSC 305/CG_Computing/Assignment_4/src/main.cpp" -o CMakeFiles/assignment4.dir/src/main.cpp.s
 
 # Object files for target assignment4
 assignment4_OBJECTS = \
@@ -93,7 +93,7 @@ assignment4_EXTERNAL_OBJECTS =
 assignment4: CMakeFiles/assignment4.dir/src/main.cpp.o
 assignment4: CMakeFiles/assignment4.dir/build.make
 assignment4: CMakeFiles/assignment4.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir="/Users/qingzeluo/Library/Mobile Documents/com~apple~CloudDocs/Uvic/Computer Science 3rd year/24 Summer/CSC 305/A4-A5/CG-Summer-2024/Assignment_4/build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable assignment4"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir="/Users/qingzeluo/Library/Mobile Documents/com~apple~CloudDocs/Uvic/Computer Science 3rd year/24 Summer/CSC 305/CG_Computing/Assignment_4/build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable assignment4"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/assignment4.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -105,6 +105,6 @@ CMakeFiles/assignment4.dir/clean:
 .PHONY : CMakeFiles/assignment4.dir/clean
 
 CMakeFiles/assignment4.dir/depend:
-	cd "/Users/qingzeluo/Library/Mobile Documents/com~apple~CloudDocs/Uvic/Computer Science 3rd year/24 Summer/CSC 305/A4-A5/CG-Summer-2024/Assignment_4/build" && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" "/Users/qingzeluo/Library/Mobile Documents/com~apple~CloudDocs/Uvic/Computer Science 3rd year/24 Summer/CSC 305/A4-A5/CG-Summer-2024/Assignment_4" "/Users/qingzeluo/Library/Mobile Documents/com~apple~CloudDocs/Uvic/Computer Science 3rd year/24 Summer/CSC 305/A4-A5/CG-Summer-2024/Assignment_4" "/Users/qingzeluo/Library/Mobile Documents/com~apple~CloudDocs/Uvic/Computer Science 3rd year/24 Summer/CSC 305/A4-A5/CG-Summer-2024/Assignment_4/build" "/Users/qingzeluo/Library/Mobile Documents/com~apple~CloudDocs/Uvic/Computer Science 3rd year/24 Summer/CSC 305/A4-A5/CG-Summer-2024/Assignment_4/build" "/Users/qingzeluo/Library/Mobile Documents/com~apple~CloudDocs/Uvic/Computer Science 3rd year/24 Summer/CSC 305/A4-A5/CG-Summer-2024/Assignment_4/build/CMakeFiles/assignment4.dir/DependInfo.cmake" "--color=$(COLOR)"
+	cd "/Users/qingzeluo/Library/Mobile Documents/com~apple~CloudDocs/Uvic/Computer Science 3rd year/24 Summer/CSC 305/CG_Computing/Assignment_4/build" && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" "/Users/qingzeluo/Library/Mobile Documents/com~apple~CloudDocs/Uvic/Computer Science 3rd year/24 Summer/CSC 305/CG_Computing/Assignment_4" "/Users/qingzeluo/Library/Mobile Documents/com~apple~CloudDocs/Uvic/Computer Science 3rd year/24 Summer/CSC 305/CG_Computing/Assignment_4" "/Users/qingzeluo/Library/Mobile Documents/com~apple~CloudDocs/Uvic/Computer Science 3rd year/24 Summer/CSC 305/CG_Computing/Assignment_4/build" "/Users/qingzeluo/Library/Mobile Documents/com~apple~CloudDocs/Uvic/Computer Science 3rd year/24 Summer/CSC 305/CG_Computing/Assignment_4/build" "/Users/qingzeluo/Library/Mobile Documents/com~apple~CloudDocs/Uvic/Computer Science 3rd year/24 Summer/CSC 305/CG_Computing/Assignment_4/build/CMakeFiles/assignment4.dir/DependInfo.cmake" "--color=$(COLOR)"
 .PHONY : CMakeFiles/assignment4.dir/depend
 
