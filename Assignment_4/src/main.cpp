@@ -7,6 +7,7 @@
 #include <fstream>
 #include <algorithm>
 #include <numeric>
+#include <stack>
 
 // Utilities for the Assignment
 #include "utils.h"
@@ -43,6 +44,9 @@ public:
 private:
     // builds the bvh recursively
     int build_recursive(const MatrixXd &V, const MatrixXi &F, const MatrixXd &centroids, int from, int to, int parent, std::vector<int> &triangles);
+    int create_leaf(const MatrixXd &V, const MatrixXi &F, int index, int parent, std::vector<int> &triangles);
+    AlignedBox3d compute_bounding_box(const MatrixXd &centroids, int start, int end, const std::vector<int> &triangles);
+    int find_longest_dimension(const AlignedBox3d &box);
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -50,7 +54,7 @@ private:
 ////////////////////////////////////////////////////////////////////////////////
 const std::string data_dir = DATA_DIR;
 const std::string filename("raytrace.png");
-const std::string mesh_filename(data_dir + "bunny.off");
+const std::string mesh_filename(data_dir + "dragon.off");
 
 // Camera settings
 const double focal_length = 2;
@@ -162,6 +166,40 @@ AABBTree::AABBTree(const MatrixXd &V, const MatrixXi &F)
     root = build_recursive(V, F, centroids, 0, triangles.size(), -1, triangles);
 }
 
+int AABBTree::create_leaf(const MatrixXd &V, const MatrixXi &F, int index, int parent, std::vector<int> &triangles)
+{
+    int triIndex = triangles[index];
+    Node leafNode;
+    leafNode.bbox = bbox_from_triangle(V.row(F(triIndex, 0)), V.row(F(triIndex, 1)), V.row(F(triIndex, 2)));
+    leafNode.parent = parent;
+    leafNode.left = -1;
+    leafNode.right = -1;
+    leafNode.triangle = triIndex;
+    nodes.push_back(leafNode);
+    return nodes.size() - 1;
+}
+
+AlignedBox3d AABBTree::compute_bounding_box(const MatrixXd &centroids, int start, int end, const std::vector<int> &triangles)
+{
+    AlignedBox3d box;
+    for (int i = start; i < end; ++i)
+    {
+        Vector3d centroid = centroids.row(triangles[i]);
+        box.extend(centroid);
+    }
+    return box;
+}
+
+int AABBTree::find_longest_dimension(const AlignedBox3d &box)
+{
+    Vector3d extents = box.diagonal();
+    if (extents[1] > extents[0])
+    {
+        return extents[1] > extents[2] ? 1 : 2;
+    }
+    return extents[0] > extents[2] ? 0 : 2;
+}
+
 int AABBTree::build_recursive(const MatrixXd &V, const MatrixXi &F, const MatrixXd &centroids, int from, int to, int parent, std::vector<int> &triangles)
 {
     // Scene is empty, so is the aabb tree
@@ -173,39 +211,16 @@ int AABBTree::build_recursive(const MatrixXd &V, const MatrixXi &F, const Matrix
     // If there is only 1 triangle left, then we are at a leaf
     if (to - from == 1)
     {
-        int index = triangles[from];
-        Node leaf_node;
-        leaf_node.bbox = bbox_from_triangle(V.row(F(index, 0)), V.row(F(index, 1)), V.row(F(index, 2)));
-        leaf_node.parent = parent;
-        leaf_node.left = -1;
-        leaf_node.right = -1;
-        leaf_node.triangle = index;
-        nodes.push_back(leaf_node);
-        return nodes.size() - 1;
+        return create_leaf(V, F, from, parent, triangles);
     }
-
-    AlignedBox3d centroid_box;
-
     // TODO Use AlignedBox3d to find the box around the current centroids
-    for (int i = from; i < to; ++i)
-    {
-        Vector3d x = centroids.row(triangles[i]);
-        centroid_box.extend(x);
-    }
+    AlignedBox3d centroid_box = compute_bounding_box(centroids, from, to, triangles);
 
     // Diagonal of the box
     Vector3d extent = centroid_box.diagonal();
 
     // TODO find the largest dimension
-    int longest_dim = 0;
-    if (extent[1] > extent[0])
-    {
-        longest_dim = 1;
-    }
-    else if (extent[2] > extent[longest_dim])
-    {
-        longest_dim = 2;
-    }
+    int longest_dim = find_longest_dimension(centroid_box);
 
     // TODO sort centroids along the longest dimension
     std::sort(triangles.begin() + from, triangles.begin() + to, [&](int f1, int f2)
@@ -289,40 +304,55 @@ bool ray_box_intersection(const Vector3d &ray_origin, const Vector3d &ray_direct
     double min_t = std::min(std::min(t_max[0], t_max[1]), t_max[2]);
     return max_t <= min_t && min_t >= 0;
 }
-bool method2_BVH_helper(double &nearest_t, const Vector3d &rayOrigin, const Vector3d &rayDirection, AABBTree::Node &node, Vector3d &p, Vector3d &N)
+bool method2_BVH_helper(double &nearest_t, const Vector3d &rayOrigin, const Vector3d &rayDirection, AABBTree::Node &rootNode, Vector3d &hitPoint, Vector3d &hitNormal)
 {
-    // Check for ray-box intersection
-    bool flag = false;
-    if (!ray_box_intersection(rayOrigin, rayDirection, node.bbox))
+    
+    std::stack<AABBTree::Node *> nodeStack;
+    nodeStack.push(&rootNode);
+    bool hit = false;
+
+    while (!nodeStack.empty())
     {
-        return flag;
+        AABBTree::Node *currentNode = nodeStack.top();
+        nodeStack.pop();
+
+        // Check whether the ray intersects the bounding box of the current node
+        if (!ray_box_intersection(rayOrigin, rayDirection, currentNode->bbox))
+        {
+            continue; // 无相交，继续处理下一个节点
+        }
+
+        // Process leaf nodes
+        if (currentNode->triangle != -1)
+        {
+            Vector3d candidatePoint, candidateNormal;
+            Vector3d vertex0 = vertices.row(facets(currentNode->triangle, 0));
+            Vector3d vertex1 = vertices.row(facets(currentNode->triangle, 1));
+            Vector3d vertex2 = vertices.row(facets(currentNode->triangle, 2));
+
+            double distance = ray_triangle_intersection(rayOrigin, rayDirection, vertex0, vertex1, vertex2, candidatePoint, candidateNormal);
+            if (distance > 0 && (nearest_t < 0 || distance < nearest_t))
+            {
+                nearest_t = distance;
+                hitPoint = candidatePoint;
+                hitNormal = candidateNormal;
+                hit = true;
+            }
+        }
+        else // handle internal nodes
+        {
+            if (currentNode->right != -1)
+            {
+                nodeStack.push(&bvh.nodes[currentNode->right]);
+            }
+            if (currentNode->left != -1)
+            {
+                nodeStack.push(&bvh.nodes[currentNode->left]);
+            }
+        }
     }
 
-    // If it's an internal node, traverse both children
-    if (node.triangle == -1)
-    {
-        bool leftHit = method2_BVH_helper(nearest_t, rayOrigin, rayDirection, bvh.nodes[node.left], p, N);
-        bool rightHit = method2_BVH_helper(nearest_t, rayOrigin, rayDirection, bvh.nodes[node.right], p, N);
-        return leftHit || rightHit;
-    }
-
-    // Process leaf node: check ray-triangle intersection
-    Vector3d tempPoint, tempNormal;
-    Vector3d vertexA = vertices.row(facets(node.triangle, 0));
-    Vector3d vertexB = vertices.row(facets(node.triangle, 1));
-    Vector3d vertexC = vertices.row(facets(node.triangle, 2));
-    double t = ray_triangle_intersection(rayOrigin, rayDirection, vertexA, vertexB, vertexC, tempPoint, tempNormal);
-
-    // Update closest intersection if this one is closer
-    if (t > 0 && (nearest_t < 0 || t < nearest_t))
-    {
-        nearest_t = t;
-        p = tempPoint;
-        N = tempNormal;
-        flag = true;
-    }
-
-    return flag;
+    return hit;
 }
 // Finds the closest intersecting object returns its index
 // In case of intersection it writes into p and N (intersection point and normals)

@@ -908,6 +908,8 @@ CMakeFiles/assignment4.dir/src/main.cpp.o: \
   /Library/Developer/CommandLineTools/SDKs/MacOSX14.4.sdk/usr/include/c++/v1/__functional/pointer_to_binary_function.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX14.4.sdk/usr/include/c++/v1/__functional/pointer_to_unary_function.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX14.4.sdk/usr/include/c++/v1/__functional/unary_negate.h \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX14.4.sdk/usr/include/c++/v1/stack \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX14.4.sdk/usr/include/c++/v1/deque \
   /Users/qingzeluo/Library/Mobile\ Documents/com~apple~CloudDocs/Uvic/Computer\ Science\ 3rd\ year/24\ Summer/CSC\ 305/CG_Computing/Assignment_4/src/utils.h \
   /Users/qingzeluo/Library/Mobile\ Documents/com~apple~CloudDocs/Uvic/Computer\ Science\ 3rd\ year/24\ Summer/CSC\ 305/CG_Computing/Assignment_4/../ext/stb/stb_image_write.h \
   /Users/qingzeluo/Library/Mobile\ Documents/com~apple~CloudDocs/Uvic/Computer\ Science\ 3rd\ year/24\ Summer/CSC\ 305/CG_Computing/Assignment_4/../ext/eigen/Eigen/Dense \
