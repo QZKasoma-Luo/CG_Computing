@@ -1,3 +1,0 @@
-/Users/qingzeluo/Library/Mobile Documents/com~apple~CloudDocs/Uvic/Computer Science 3rd year/24 Summer/CSC 305/CG_Computing/Assignment_4/build/CMakeFiles/assignment4.dir
-/Users/qingzeluo/Library/Mobile Documents/com~apple~CloudDocs/Uvic/Computer Science 3rd year/24 Summer/CSC 305/CG_Computing/Assignment_4/build/CMakeFiles/edit_cache.dir
-/Users/qingzeluo/Library/Mobile Documents/com~apple~CloudDocs/Uvic/Computer Science 3rd year/24 Summer/CSC 305/CG_Computing/Assignment_4/build/CMakeFiles/rebuild_cache.dir

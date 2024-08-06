@@ -17,40 +17,40 @@
 using namespace std;
 using namespace Eigen;
 
-//Image height
+// Image height
 const int H = 480;
 
-//Camera settings
-const double near_plane = 1.5;       //AKA focal length
+// Camera settings
+const double near_plane = 1.5; // AKA focal length
 const double far_plane = near_plane * 100;
-const double field_of_view = 0.7854; //45 degrees
+const double field_of_view = 0.7854; // 45 degrees
 const double aspect_ratio = 1.5;
 const bool is_perspective = true;
 const Vector3d camera_position(0, 0, 3);
 const Vector3d camera_gaze(0, 0, -1);
 const Vector3d camera_top(0, 1, 0);
 
-//Object
+// Object
 const std::string data_dir = DATA_DIR;
 const std::string mesh_filename(data_dir + "bunny.off");
 MatrixXd vertices; // n x 3 matrix (n points)
 MatrixXi facets;   // m x 3 matrix (m triangles)
 
-//Material for the object
+// Material for the object
 const Vector3d obj_diffuse_color(0.5, 0.5, 0.5);
 const Vector3d obj_specular_color(0.2, 0.2, 0.2);
 const double obj_specular_exponent = 256.0;
 
-//Lights
+// Lights
 std::vector<Vector3d> light_positions;
 std::vector<Vector3d> light_colors;
-//Ambient light
+// Ambient light
 const Vector3d ambient_light(0.3, 0.3, 0.3);
 
-//Fills the different arrays
+// Fills the different arrays
 void setup_scene()
 {
-    //Loads file
+    // Loads file
     std::ifstream in(mesh_filename);
     if (!in.good())
     {
@@ -74,7 +74,7 @@ void setup_scene()
         assert(s == 3);
     }
 
-    //Lights
+    // Lights
     light_positions.emplace_back(8, 8, 0);
     light_colors.emplace_back(16, 16, 16);
 
@@ -99,22 +99,46 @@ void setup_scene()
 
 void build_uniform(UniformAttributes &uniform)
 {
-    //TODO: setup uniform
+    // TODO: setup uniform
 
-    //TODO: setup camera, compute w, u, v
+    // TODO: setup camera, compute w, u, v
+    Vector3d w = -(camera_gaze.normalized());
+    Vector3d u = camera_top.cross(w).normalized();
+    Vector3d v = w.cross(u);
 
-    //TODO: compute the camera transformation
+    // TODO: compute the camera transformation
+    Matrix4d camera_transformation = Matrix4d::Zero();
+    camera_transformation.block<3, 1>(0, 0) = u;
+    camera_transformation.block<3, 1>(0, 1) = v;
+    camera_transformation.block<3, 1>(0, 2) = w;
+    camera_transformation.block<3, 1>(0, 3) = camera_position;
+    camera_transformation(3, 3) = 1.0;
 
-    //TODO: setup projection matrix
-
+    // TODO: setup projection matrix
+    double t = near_plane * tan(field_of_view / 2);
+    double f = -far_plane;
+    double n = -near_plane;
+    double r = t * aspect_ratio;
+    double l = -r;
+    double b = -t;
     Matrix4d P;
     if (is_perspective)
     {
-        //TODO setup prespective camera
+        // TODO setup prespective camera
+        P << 2 * near_plane / (r - l), 0, (r + l) / (r - l), 0,
+            0, 2 * near_plane / (t - b), (t + b) / (t - b), 0,
+            0, 0, (f + n) / (n - f), 2 * f * n / (n - f),
+            0, 0, -1, 0;
     }
     else
     {
+        P << 2 / (r - l), 0, 0, -(r + l) / (r - l),
+            0, 2 / (t - b), 0, -(t + b) / (t - b),
+            0, 0, -2 / (f - n), -(f + n) / (f - n),
+            0, 0, 0, 1;
     }
+
+    uniform.setMvpMatrix(P * camera_transformation.inverse());
 }
 
 void simple_render(Eigen::Matrix<FrameBufferAttributes, Eigen::Dynamic, Eigen::Dynamic> &frameBuffer)
@@ -123,30 +147,33 @@ void simple_render(Eigen::Matrix<FrameBufferAttributes, Eigen::Dynamic, Eigen::D
     build_uniform(uniform);
     Program program;
 
-    program.VertexShader = [](const VertexAttributes &va, const UniformAttributes &uniform) {
-        //TODO: fill the shader
+    program.VertexShader = [](const VertexAttributes &va, const UniformAttributes &uniform)
+    {
+        // TODO: fill the shader
         return va;
     };
 
-    program.FragmentShader = [](const VertexAttributes &va, const UniformAttributes &uniform) {
-        //TODO: fill the shader
+    program.FragmentShader = [](const VertexAttributes &va, const UniformAttributes &uniform)
+    {
+        // TODO: fill the shader
         return FragmentAttributes(1, 0, 0);
     };
 
-    program.BlendingShader = [](const FragmentAttributes &fa, const FrameBufferAttributes &previous) {
-        //TODO: fill the shader
+    program.BlendingShader = [](const FragmentAttributes &fa, const FrameBufferAttributes &previous)
+    {
+        // TODO: fill the shader
         return FrameBufferAttributes(fa.color[0], fa.color[1], fa.color[2], fa.color[3]);
     };
 
     std::vector<VertexAttributes> vertex_attributes;
-    //TODO: build the vertex attributes from vertices and facets
+    // TODO: build the vertex attributes from vertices and facets
 
     rasterize_triangles(program, uniform, vertex_attributes, frameBuffer);
 }
 
 Matrix4d compute_rotation(const double alpha)
 {
-    //TODO: Compute the rotation matrix of angle alpha on the y axis around the object barycenter
+    // TODO: Compute the rotation matrix of angle alpha on the y axis around the object barycenter
     Matrix4d res;
 
     return res;
@@ -160,44 +187,50 @@ void wireframe_render(const double alpha, Eigen::Matrix<FrameBufferAttributes, E
 
     Matrix4d trafo = compute_rotation(alpha);
 
-    program.VertexShader = [](const VertexAttributes &va, const UniformAttributes &uniform) {
-        //TODO: fill the shader
+    program.VertexShader = [](const VertexAttributes &va, const UniformAttributes &uniform)
+    {
+        // TODO: fill the shader
         return va;
     };
 
-    program.FragmentShader = [](const VertexAttributes &va, const UniformAttributes &uniform) {
-        //TODO: fill the shader
+    program.FragmentShader = [](const VertexAttributes &va, const UniformAttributes &uniform)
+    {
+        // TODO: fill the shader
         return FragmentAttributes(1, 0, 0);
     };
 
-    program.BlendingShader = [](const FragmentAttributes &fa, const FrameBufferAttributes &previous) {
-        //TODO: fill the shader
+    program.BlendingShader = [](const FragmentAttributes &fa, const FrameBufferAttributes &previous)
+    {
+        // TODO: fill the shader
         return FrameBufferAttributes(fa.color[0], fa.color[1], fa.color[2], fa.color[3]);
     };
 
     std::vector<VertexAttributes> vertex_attributes;
 
-    //TODO: generate the vertex attributes for the edges and rasterize the lines
-    //TODO: use the transformation matrix
+    // TODO: generate the vertex attributes for the edges and rasterize the lines
+    // TODO: use the transformation matrix
 
     rasterize_lines(program, uniform, vertex_attributes, 0.5, frameBuffer);
 }
 
 void get_shading_program(Program &program)
 {
-    program.VertexShader = [](const VertexAttributes &va, const UniformAttributes &uniform) {
-        //TODO: transform the position and the normal
-        //TODO: compute the correct lighting
+    program.VertexShader = [](const VertexAttributes &va, const UniformAttributes &uniform)
+    {
+        // TODO: transform the position and the normal
+        // TODO: compute the correct lighting
         return va;
     };
 
-    program.FragmentShader = [](const VertexAttributes &va, const UniformAttributes &uniform) {
-        //TODO: create the correct fragment
+    program.FragmentShader = [](const VertexAttributes &va, const UniformAttributes &uniform)
+    {
+        // TODO: create the correct fragment
         return FragmentAttributes(1, 0, 0);
     };
 
-    program.BlendingShader = [](const FragmentAttributes &fa, const FrameBufferAttributes &previous) {
-        //TODO: implement the depth check
+    program.BlendingShader = [](const FragmentAttributes &fa, const FrameBufferAttributes &previous)
+    {
+        // TODO: implement the depth check
         return FrameBufferAttributes(fa.color[0], fa.color[1], fa.color[2], fa.color[3]);
     };
 }
@@ -211,8 +244,8 @@ void flat_shading(const double alpha, Eigen::Matrix<FrameBufferAttributes, Eigen
     Eigen::Matrix4d trafo = compute_rotation(alpha);
 
     std::vector<VertexAttributes> vertex_attributes;
-    //TODO: compute the normals
-    //TODO: set material colors
+    // TODO: compute the normals
+    // TODO: set material colors
 
     rasterize_triangles(program, uniform, vertex_attributes, frameBuffer);
 }
@@ -226,11 +259,11 @@ void pv_shading(const double alpha, Eigen::Matrix<FrameBufferAttributes, Eigen::
 
     Eigen::Matrix4d trafo = compute_rotation(alpha);
 
-    //TODO: compute the vertex normals as vertex normal average
+    // TODO: compute the vertex normals as vertex normal average
 
     std::vector<VertexAttributes> vertex_attributes;
-    //TODO: create vertex attributes
-    //TODO: set material colors
+    // TODO: create vertex attributes
+    // TODO: set material colors
 
     rasterize_triangles(program, uniform, vertex_attributes, frameBuffer);
 }
@@ -259,7 +292,7 @@ int main(int argc, char *argv[])
     framebuffer_to_uint8(frameBuffer, image);
     stbi_write_png("pv_shading.png", frameBuffer.rows(), frameBuffer.cols(), 4, image.data(), frameBuffer.rows() * 4);
 
-    //TODO: add the animation
+    // TODO: add the animation
 
     return 0;
 }

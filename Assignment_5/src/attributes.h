@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Eigen/Core>
-
+using namespace Eigen;
 class VertexAttributes
 {
 public:
@@ -52,4 +52,21 @@ public:
 class UniformAttributes
 {
 public:
+    // Constructor
+    UniformAttributes() : mvpMatrix(Matrix4d::Identity()) {} // Initialize with the identity matrix
+
+    // Getter for the transformation matrix
+    const Matrix4d &getMvpMatrix() const
+    {
+        return mvpMatrix;
+    }
+
+    // Setter for the transformation matrix
+    void setMvpMatrix(const Matrix4d &matrix)
+    {
+        mvpMatrix = matrix;
+    }
+
+private:
+    Matrix4d mvpMatrix; // Stores the Model-View-Projection matrix
 };
