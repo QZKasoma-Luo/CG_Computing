@@ -150,7 +150,12 @@ void simple_render(Eigen::Matrix<FrameBufferAttributes, Eigen::Dynamic, Eigen::D
     program.VertexShader = [](const VertexAttributes &va, const UniformAttributes &uniform)
     {
         // TODO: fill the shader
-        return va;
+        VertexAttributes out_va;
+        Vector4d homogeneous_position(va.position[0], va.position[1], va.position[2], 1.0);
+        homogeneous_position = uniform.getMvpMatrix() * homogeneous_position;
+        // Divide all components by the w component for perspective division
+        out_va.position = homogeneous_position / homogeneous_position[3];
+        return out_va;
     };
 
     program.FragmentShader = [](const VertexAttributes &va, const UniformAttributes &uniform)
@@ -162,13 +167,33 @@ void simple_render(Eigen::Matrix<FrameBufferAttributes, Eigen::Dynamic, Eigen::D
     program.BlendingShader = [](const FragmentAttributes &fa, const FrameBufferAttributes &previous)
     {
         // TODO: fill the shader
-        return FrameBufferAttributes(fa.color[0], fa.color[1], fa.color[2], fa.color[3]);
+        int r = static_cast<int>(fa.color[0] * 255);
+        int g = static_cast<int>(fa.color[1] * 255);
+        int b = static_cast<int>(fa.color[2] * 255);
+        int a = static_cast<int>(fa.color[3] * 255);
+        return FrameBufferAttributes(r, g, b, a);
     };
 
     std::vector<VertexAttributes> vertex_attributes;
     // TODO: build the vertex attributes from vertices and facets
+    // vertex_attributes.reserve(facets.rows() * 3); // Optimization to allocate memory upfront
+    // loop through triangles
+    for (int i = 0; i < facets.rows(); i++)
+    {
+        // get triangle
+        Vector3i triangle = facets.row(i);
 
-    rasterize_triangles(program, uniform, vertex_attributes, frameBuffer);
+        // loop over vertices in triangle
+        for (int j = 0; j < 3; j++)
+        {
+            // get vertex of triangle
+            Vector3d v = vertices.row(triangle[j]);
+
+            // add to vertex attributes
+            vertex_attributes.push_back(VertexAttributes(v[0], v[1], v[2]));
+        }
+        rasterize_triangles(program, uniform, vertex_attributes, frameBuffer);
+    }
 }
 
 Matrix4d compute_rotation(const double alpha)
