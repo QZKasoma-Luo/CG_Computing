@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <cmath>
 
 // Utilities for the Assignment
 #include "raster.h"
@@ -151,10 +152,8 @@ void simple_render(Eigen::Matrix<FrameBufferAttributes, Eigen::Dynamic, Eigen::D
     {
         // TODO: fill the shader
         VertexAttributes out_va;
-        Vector4d homogeneous_position(va.position[0], va.position[1], va.position[2], 1.0);
-        homogeneous_position = uniform.getMvpMatrix() * homogeneous_position;
         // Divide all components by the w component for perspective division
-        out_va.position = homogeneous_position / homogeneous_position[3];
+        out_va.position = uniform.getMvpMatrix() * va.position;
         return out_va;
     };
 
@@ -174,33 +173,51 @@ void simple_render(Eigen::Matrix<FrameBufferAttributes, Eigen::Dynamic, Eigen::D
         return FrameBufferAttributes(r, g, b, a);
     };
 
-    std::vector<VertexAttributes> vertex_attributes;
+    // std::vector<VertexAttributes> vertex_attributes;
     // TODO: build the vertex attributes from vertices and facets
-    // vertex_attributes.reserve(facets.rows() * 3); // Optimization to allocate memory upfront
-    // loop through triangles
-    for (int i = 0; i < facets.rows(); i++)
+    std::vector<VertexAttributes> vertex_attributes;
+    vertex_attributes.reserve(3 * facets.rows()); // 根据需要调整大小，避免在循环中分配内存
+
+    for (int i = 0; i < facets.rows(); ++i)
     {
-        // get triangle
-        Vector3i triangle = facets.row(i);
+        vertex_attributes.clear();
+        vertex_attributes.reserve(3);
 
-        // loop over vertices in triangle
-        for (int j = 0; j < 3; j++)
+        for (int j = 0; j < 3; ++j)
         {
-            // get vertex of triangle
-            Vector3d v = vertices.row(triangle[j]);
-
-            // add to vertex attributes
-            vertex_attributes.push_back(VertexAttributes(v[0], v[1], v[2]));
+            int idx = facets(i, j);
+            Eigen::Vector3d v = vertices.row(idx);
+            vertex_attributes.emplace_back(v[0], v[1], v[2]);
         }
+
         rasterize_triangles(program, uniform, vertex_attributes, frameBuffer);
     }
 }
 
-Matrix4d compute_rotation(const double alpha)
+Eigen::Matrix4d compute_rotation(const double alpha)
 {
     // TODO: Compute the rotation matrix of angle alpha on the y axis around the object barycenter
-    Matrix4d res;
+    Eigen::Matrix4d res;
+    double barycenter_x = 1.0, barycenter_y = 2.0, barycenter_z = 3.0;
 
+    Eigen::Matrix4d translate_to_origin = Eigen::Matrix4d::Identity();
+    translate_to_origin(0, 3) = -barycenter_x;
+    translate_to_origin(1, 3) = -barycenter_y;
+    translate_to_origin(2, 3) = -barycenter_z;
+
+    Eigen::Matrix4d translate_back = Eigen::Matrix4d::Identity();
+    translate_back(0, 3) = barycenter_x;
+    translate_back(1, 3) = barycenter_y;
+    translate_back(2, 3) = barycenter_z;
+
+    Eigen::Matrix4d rotation = Eigen::Matrix4d::Identity();
+    rotation(0, 0) = cos(alpha);
+    rotation(0, 2) = sin(alpha);
+    rotation(2, 0) = -sin(alpha);
+    rotation(2, 2) = cos(alpha);
+
+    // Combine transformations
+    res = translate_back * rotation * translate_to_origin;
     return res;
 }
 
@@ -211,11 +228,14 @@ void wireframe_render(const double alpha, Eigen::Matrix<FrameBufferAttributes, E
     Program program;
 
     Matrix4d trafo = compute_rotation(alpha);
+    uniform.setMvpMatrix(uniform.getMvpMatrix() * trafo);
 
     program.VertexShader = [](const VertexAttributes &va, const UniformAttributes &uniform)
     {
         // TODO: fill the shader
-        return va;
+        VertexAttributes va_out;
+        va_out.position = uniform.getMvpMatrix() * va.position;
+        return va_out;
     };
 
     program.FragmentShader = [](const VertexAttributes &va, const UniformAttributes &uniform)
@@ -234,6 +254,37 @@ void wireframe_render(const double alpha, Eigen::Matrix<FrameBufferAttributes, E
 
     // TODO: generate the vertex attributes for the edges and rasterize the lines
     // TODO: use the transformation matrix
+
+    // Estimate number of lines: 3 lines per triangle
+    vertex_attributes.reserve(facets.rows() * 3 * 2); // Each triangle has 3 edges, 2 vertices per edge
+
+    // Apply the transformation matrix directly in the loop
+    Matrix4d transform = uniform.getMvpMatrix(); // Transformation matrix from uniform
+
+    for (int i = 0; i < facets.rows(); i++)
+    {
+        // get triangle
+        Vector3i triangle = facets.row(i);
+
+        // get vertices of triangle
+        Vector3d a = vertices.row(triangle[0]);
+        Vector3d b = vertices.row(triangle[1]);
+        Vector3d c = vertices.row(triangle[2]);
+
+        // add lines of triangle to vertex attributes
+
+        // ab line
+        vertex_attributes.push_back(VertexAttributes(a[0], a[1], a[2]));
+        vertex_attributes.push_back(VertexAttributes(b[0], b[1], b[2]));
+
+        // ac line
+        vertex_attributes.push_back(VertexAttributes(a[0], a[1], a[2]));
+        vertex_attributes.push_back(VertexAttributes(c[0], c[1], c[2]));
+
+        // bc line
+        vertex_attributes.push_back(VertexAttributes(b[0], b[1], b[2]));
+        vertex_attributes.push_back(VertexAttributes(c[0], c[1], c[2]));
+    }
 
     rasterize_lines(program, uniform, vertex_attributes, 0.5, frameBuffer);
 }
@@ -271,6 +322,40 @@ void flat_shading(const double alpha, Eigen::Matrix<FrameBufferAttributes, Eigen
     std::vector<VertexAttributes> vertex_attributes;
     // TODO: compute the normals
     // TODO: set material colors
+
+    for (int i = 0; i < facets.rows(); i++)
+    {
+        // get triangle
+        Vector3i triangle = facets.row(i);
+
+        // get vertices of triangle
+        Vector3d a = vertices.row(triangle[0]);
+        Vector3d b = vertices.row(triangle[1]);
+        Vector3d c = vertices.row(triangle[2]);
+
+        // compute normal of triangle
+        Vector3d N = ((b - a).cross(c - a)).normalized();
+
+        // create vertices
+        VertexAttributes va(a[0], a[1], a[2]);
+        VertexAttributes vb(b[0], b[1], b[2]);
+        VertexAttributes vc(c[0], c[1], c[2]);
+
+        // add normals to vertices
+        va.normal = N;
+        vb.normal = N;
+        vc.normal = N;
+
+        // set material colors
+        va.color << 1, 1, 1;
+        vb.color << 1, 1, 1;
+        vc.color << 1, 1, 1;
+
+        // add to vertex attributes
+        vertex_attributes.push_back(va);
+        vertex_attributes.push_back(vb);
+        vertex_attributes.push_back(vc);
+    }
 
     rasterize_triangles(program, uniform, vertex_attributes, frameBuffer);
 }
