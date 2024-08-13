@@ -33,7 +33,7 @@ const Vector3d camera_top(0, 1, 0);
 
 // Object
 const std::string data_dir = DATA_DIR;
-const std::string mesh_filename(data_dir + "bunny.off");
+const std::string mesh_filename(data_dir + "bumpy_cube.off");
 MatrixXd vertices; // n x 3 matrix (n points)
 MatrixXi facets;   // m x 3 matrix (m triangles)
 
@@ -112,36 +112,27 @@ void build_uniform(UniformAttributes &uniform)
     camera_view_transformed.block<3, 1>(0, 2) = w;                // w vector
     camera_view_transformed.block<3, 1>(0, 3) = -camera_position; // camera position
     camera_view_transformed(3, 3) = 1.0;
-    uniform.camera_view_transformed = camera_view_transformed;
+    uniform.camera_view_transformed = camera_view_transformed.inverse();
 
     // TODO: setup projection matrix
 
     Matrix4d P;
+
+    // setup orthographic projection matrix
+    uniform.orth_matrix = Eigen::Matrix4d::Identity();
+    double height = 2 * near_plane * tan(field_of_view / 2);
+    double width = height * aspect_ratio;
+    uniform.orth_matrix(0, 0) = 2 / width;
+    uniform.orth_matrix(1, 1) = 2 / height;
+    uniform.orth_matrix(2, 2) = -2 / (far_plane - near_plane);
+    uniform.orth_matrix(2, 3) = -(far_plane + near_plane) / (far_plane - near_plane);
+
     if (is_perspective)
     {
-        double scale = 1.0 / tan(field_of_view / 2.0);
-        P << scale / aspect_ratio, 0, 0, 0,
-            0, scale, 0, 0,
-            0, 0, -(far_plane + near_plane) / (far_plane - near_plane), -2 * far_plane * near_plane / (far_plane - near_plane),
-            0, 0, -1, 0;
-        uniform.projection_matrix = P;
     }
     else
     {
-        double left = -1.0 * aspect_ratio;
-        double right = 1.0 * aspect_ratio;
-        double bottom = -1.0;
-        double top = 1.0;
-
-        P << 2.0 / (right - left), 0, 0, -(right + left) / (right - left),
-            0, 2.0 / (top - bottom), 0, -(top + bottom) / (top - bottom),
-            0, 0, -2.0 / (far_plane - near_plane), -(far_plane + near_plane) / (far_plane - near_plane),
-            0, 0, 0, 1;
-        uniform.projection_matrix = P;
     }
-
-    Matrix4d model_matrix = Matrix4d::Identity(); // 假设模型矩阵为单位矩阵
-    uniform.mvp_matrix = uniform.projection_matrix * uniform.camera_view_transformed * model_matrix;
 }
 
 void simple_render(Eigen::Matrix<FrameBufferAttributes, Eigen::Dynamic, Eigen::Dynamic> &frameBuffer)
@@ -154,7 +145,7 @@ void simple_render(Eigen::Matrix<FrameBufferAttributes, Eigen::Dynamic, Eigen::D
     {
         // TODO: fill the shader
         VertexAttributes shader_out;
-        shader_out.position = uniform.projection_matrix * uniform.camera_view_transformed * va.position;
+        shader_out.position = uniform.orth_matrix * uniform.camera_view_transformed * va.position;
         return shader_out;
     };
 
@@ -172,10 +163,17 @@ void simple_render(Eigen::Matrix<FrameBufferAttributes, Eigen::Dynamic, Eigen::D
 
     std::vector<VertexAttributes> vertex_attributes;
     // TODO: build the vertex attributes from vertices and facets
-    for (int i = 0; i < vertices.rows(); ++i)
+    // loop through triangles
+    for (int i = 0; i < facets.rows(); i++)
     {
-        vertex_attributes.emplace_back(vertices(i, 0), vertices(i, 1), vertices(i, 2));
+        int idx0 = facets(i, 0);
+        int idx1 = facets(i, 1);
+        int idx2 = facets(i, 2);
+        vertex_attributes.push_back(VertexAttributes(vertices(idx0, 0), vertices(idx0, 1), vertices(idx0, 2)));
+        vertex_attributes.push_back(VertexAttributes(vertices(idx1, 0), vertices(idx1, 1), vertices(idx1, 2)));
+        vertex_attributes.push_back(VertexAttributes(vertices(idx2, 0), vertices(idx2, 1), vertices(idx2, 2)));
     }
+
     rasterize_triangles(program, uniform, vertex_attributes, frameBuffer);
 }
 
@@ -199,7 +197,7 @@ void wireframe_render(const double alpha, Eigen::Matrix<FrameBufferAttributes, E
     {
         // TODO: fill the shader
         VertexAttributes shader_out;
-        shader_out.position = uniform.projection_matrix * uniform.camera_view_transformed * va.position;
+        shader_out.position = uniform.orth_matrix * uniform.camera_view_transformed * va.position;
         return shader_out;
     };
 
@@ -219,6 +217,16 @@ void wireframe_render(const double alpha, Eigen::Matrix<FrameBufferAttributes, E
 
     // TODO: generate the vertex attributes for the edges and rasterize the lines
     // TODO: use the transformation matrix
+    frameBuffer.setZero();
+    for (int i = 0; i < facets.rows(); i++)
+    {
+        int idx0 = facets(i, 0);
+        int idx1 = facets(i, 1);
+        int idx2 = facets(i, 2);
+        vertex_attributes.push_back(VertexAttributes(vertices(idx0, 0), vertices(idx0, 1), vertices(idx0, 2)));
+        vertex_attributes.push_back(VertexAttributes(vertices(idx1, 0), vertices(idx1, 1), vertices(idx1, 2)));
+        vertex_attributes.push_back(VertexAttributes(vertices(idx2, 0), vertices(idx2, 1), vertices(idx2, 2)));
+    }
 
     rasterize_lines(program, uniform, vertex_attributes, 0.5, frameBuffer);
 }
@@ -290,14 +298,17 @@ int main(int argc, char *argv[])
     framebuffer_to_uint8(frameBuffer, image);
     stbi_write_png("simple.png", frameBuffer.rows(), frameBuffer.cols(), 4, image.data(), frameBuffer.rows() * 4);
 
+    frameBuffer.setConstant(FrameBufferAttributes());
     wireframe_render(0, frameBuffer);
     framebuffer_to_uint8(frameBuffer, image);
     stbi_write_png("wireframe.png", frameBuffer.rows(), frameBuffer.cols(), 4, image.data(), frameBuffer.rows() * 4);
 
+    frameBuffer.setConstant(FrameBufferAttributes());
     flat_shading(0, frameBuffer);
     framebuffer_to_uint8(frameBuffer, image);
     stbi_write_png("flat_shading.png", frameBuffer.rows(), frameBuffer.cols(), 4, image.data(), frameBuffer.rows() * 4);
 
+    frameBuffer.setConstant(FrameBufferAttributes());
     pv_shading(0, frameBuffer);
     framebuffer_to_uint8(frameBuffer, image);
     stbi_write_png("pv_shading.png", frameBuffer.rows(), frameBuffer.cols(), 4, image.data(), frameBuffer.rows() * 4);

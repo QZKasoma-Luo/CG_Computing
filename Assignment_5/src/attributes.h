@@ -54,5 +54,5 @@ class UniformAttributes
 public:
     Eigen::Matrix4d camera_view_transformed; // store the camera view matrix
     Eigen::Matrix4d mvp_matrix;              // store the model view projection matrix
-    Eigen::Matrix4d projection_matrix;       // store the projection matrix
+    Eigen::Matrix4d orth_matrix;             // store the projection matrix
 };
