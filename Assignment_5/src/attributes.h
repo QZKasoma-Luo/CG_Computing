@@ -5,6 +5,9 @@
 class VertexAttributes
 {
 public:
+    Eigen::Vector4d position;
+    Eigen::Vector3d normal; // Add this line to include normal vector
+    Eigen::Vector3d color;  // Add this line to include color
     VertexAttributes(double x = 0, double y = 0, double z = 0, double w = 1)
     {
         position << x, y, z, w;
@@ -23,8 +26,6 @@ public:
         r.position = alpha * a.position + beta * b.position + gamma * c.position;
         return r;
     }
-
-    Eigen::Vector4d position;
 };
 
 class FragmentAttributes
@@ -53,6 +54,6 @@ class UniformAttributes
 {
 public:
     Eigen::Matrix4d camera_view_transformed; // store the camera view matrix
-    Eigen::Matrix4d mvp_matrix;              // store the model view projection matrix
     Eigen::Matrix4d orth_matrix;             // store the projection matrix
+    std::vector<Eigen::Vector3d> light_positions;
 };

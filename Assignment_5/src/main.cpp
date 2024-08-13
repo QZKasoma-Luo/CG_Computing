@@ -2,7 +2,6 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <cmath>
 
 // Utilities for the Assignment
 #include "raster.h"
@@ -26,14 +25,14 @@ const double near_plane = 1.5; // AKA focal length
 const double far_plane = near_plane * 100;
 const double field_of_view = 0.7854; // 45 degrees
 const double aspect_ratio = 1.5;
-const bool is_perspective = false;
+const bool is_perspective = true;
 const Vector3d camera_position(0, 0, 3);
 const Vector3d camera_gaze(0, 0, -1);
 const Vector3d camera_top(0, 1, 0);
 
 // Object
 const std::string data_dir = DATA_DIR;
-const std::string mesh_filename(data_dir + "bumpy_cube.off");
+const std::string mesh_filename(data_dir + "bunny.off");
 MatrixXd vertices; // n x 3 matrix (n points)
 MatrixXi facets;   // m x 3 matrix (m triangles)
 
@@ -101,34 +100,44 @@ void setup_scene()
 void build_uniform(UniformAttributes &uniform)
 {
     // TODO: setup uniform
-    Vector3d w = -camera_gaze.normalized();
-    Vector3d u = camera_top.cross(w).normalized();
-    Vector3d v = w.cross(u);
+
     // TODO: setup camera, compute w, u, v
+    Vector3d w = -1 * (camera_gaze.normalized());
+    Vector3d u = (camera_top.cross(w)).normalized();
+    Vector3d v = w.cross(u);
     // TODO: compute the camera transformation
     Matrix4d camera_view_transformed;
-    camera_view_transformed.block<3, 1>(0, 0) = u;                // u vector
-    camera_view_transformed.block<3, 1>(0, 1) = v;                // v vector
-    camera_view_transformed.block<3, 1>(0, 2) = w;                // w vector
-    camera_view_transformed.block<3, 1>(0, 3) = -camera_position; // camera position
-    camera_view_transformed(3, 3) = 1.0;
+    camera_view_transformed.setZero(); // Initialize all matrix elements to zero
+
+    // Set the rotation part
+    camera_view_transformed.block<3, 1>(0, 0) = u;
+    camera_view_transformed.block<3, 1>(0, 1) = v;
+    camera_view_transformed.block<3, 1>(0, 2) = w;
+
+    // Set the translation part
+    camera_view_transformed.block<3, 1>(0, 3) = camera_position;
+
+    // Set the homogenous coordinate part
+    camera_view_transformed.row(3) << 0, 0, 0, 1;
+
     uniform.camera_view_transformed = camera_view_transformed.inverse();
 
     // TODO: setup projection matrix
 
-    Matrix4d P;
-
-    // setup orthographic projection matrix
+    // set up the orthographic projection matrix
     uniform.orth_matrix = Eigen::Matrix4d::Identity();
-    double height = 2 * near_plane * tan(field_of_view / 2);
-    double width = height * aspect_ratio;
+    double height = 2 * tan(field_of_view / 2) * near_plane;
+    double width = aspect_ratio * height;
+
     uniform.orth_matrix(0, 0) = 2 / width;
     uniform.orth_matrix(1, 1) = 2 / height;
     uniform.orth_matrix(2, 2) = -2 / (far_plane - near_plane);
     uniform.orth_matrix(2, 3) = -(far_plane + near_plane) / (far_plane - near_plane);
 
+    Matrix4d P;
     if (is_perspective)
     {
+        // TODO setup prespective camera
     }
     else
     {
@@ -158,22 +167,24 @@ void simple_render(Eigen::Matrix<FrameBufferAttributes, Eigen::Dynamic, Eigen::D
     program.BlendingShader = [](const FragmentAttributes &fa, const FrameBufferAttributes &previous)
     {
         // TODO: fill the shader
-        return FrameBufferAttributes(fa.color[0] * 255, fa.color[1] * 255, fa.color[2] * 255, fa.color[3] * 255);
+        return FrameBufferAttributes(fa.color[0], fa.color[1], fa.color[2], fa.color[3]);
     };
 
     std::vector<VertexAttributes> vertex_attributes;
     // TODO: build the vertex attributes from vertices and facets
-    // loop through triangles
-    for (int i = 0; i < facets.rows(); i++)
-    {
-        int idx0 = facets(i, 0);
-        int idx1 = facets(i, 1);
-        int idx2 = facets(i, 2);
-        vertex_attributes.push_back(VertexAttributes(vertices(idx0, 0), vertices(idx0, 1), vertices(idx0, 2)));
-        vertex_attributes.push_back(VertexAttributes(vertices(idx1, 0), vertices(idx1, 1), vertices(idx1, 2)));
-        vertex_attributes.push_back(VertexAttributes(vertices(idx2, 0), vertices(idx2, 1), vertices(idx2, 2)));
-    }
+    // Efficiently reserve space for all vertex attributes to avoid reallocation
+    vertex_attributes.reserve(facets.size() * 3);
 
+    // Loop over all facets and create vertex attributes for each vertex
+    for (int i = 0; i < facets.rows(); ++i)
+    {
+        for (int j = 0; j < 3; ++j)
+        { // Each facet has three vertices
+            int vertexIndex = facets(i, j);
+            const Vector3d &vertexPos = vertices.row(vertexIndex);
+            vertex_attributes.emplace_back(vertexPos[0], vertexPos[1], vertexPos[2]);
+        }
+    }
     rasterize_triangles(program, uniform, vertex_attributes, frameBuffer);
 }
 
@@ -213,19 +224,22 @@ void wireframe_render(const double alpha, Eigen::Matrix<FrameBufferAttributes, E
         return FrameBufferAttributes(fa.color[0], fa.color[1], fa.color[2], fa.color[3]);
     };
 
-    std::vector<VertexAttributes> vertex_attributes;
-
-    // TODO: generate the vertex attributes for the edges and rasterize the lines
-    // TODO: use the transformation matrix
+    // std::vector<VertexAttributes> vertex_attributes;
     frameBuffer.setZero();
+    std::vector<VertexAttributes> vertex_attributes;
+    vertex_attributes.reserve(facets.rows() * 6); // Reserving space for all vertex attributes
+
+    // Generate all line vertex attributes in one loop
     for (int i = 0; i < facets.rows(); i++)
     {
-        int idx0 = facets(i, 0);
-        int idx1 = facets(i, 1);
-        int idx2 = facets(i, 2);
-        vertex_attributes.push_back(VertexAttributes(vertices(idx0, 0), vertices(idx0, 1), vertices(idx0, 2)));
-        vertex_attributes.push_back(VertexAttributes(vertices(idx1, 0), vertices(idx1, 1), vertices(idx1, 2)));
-        vertex_attributes.push_back(VertexAttributes(vertices(idx2, 0), vertices(idx2, 1), vertices(idx2, 2)));
+        const Vector3i &triangle = facets.row(i);
+        for (int j = 0; j < 3; j++)
+        {
+            const Vector3d &start = vertices.row(triangle[j]);
+            const Vector3d &end = vertices.row(triangle[(j + 1) % 3]); // Loop back to the first vertex
+            vertex_attributes.emplace_back(start[0], start[1], start[2]);
+            vertex_attributes.emplace_back(end[0], end[1], end[2]);
+        }
     }
 
     rasterize_lines(program, uniform, vertex_attributes, 0.5, frameBuffer);
@@ -237,6 +251,7 @@ void get_shading_program(Program &program)
     {
         // TODO: transform the position and the normal
         // TODO: compute the correct lighting
+
         return va;
     };
 
@@ -298,17 +313,14 @@ int main(int argc, char *argv[])
     framebuffer_to_uint8(frameBuffer, image);
     stbi_write_png("simple.png", frameBuffer.rows(), frameBuffer.cols(), 4, image.data(), frameBuffer.rows() * 4);
 
-    frameBuffer.setConstant(FrameBufferAttributes());
     wireframe_render(0, frameBuffer);
     framebuffer_to_uint8(frameBuffer, image);
     stbi_write_png("wireframe.png", frameBuffer.rows(), frameBuffer.cols(), 4, image.data(), frameBuffer.rows() * 4);
 
-    frameBuffer.setConstant(FrameBufferAttributes());
     flat_shading(0, frameBuffer);
     framebuffer_to_uint8(frameBuffer, image);
     stbi_write_png("flat_shading.png", frameBuffer.rows(), frameBuffer.cols(), 4, image.data(), frameBuffer.rows() * 4);
 
-    frameBuffer.setConstant(FrameBufferAttributes());
     pv_shading(0, frameBuffer);
     framebuffer_to_uint8(frameBuffer, image);
     stbi_write_png("pv_shading.png", frameBuffer.rows(), frameBuffer.cols(), 4, image.data(), frameBuffer.rows() * 4);
